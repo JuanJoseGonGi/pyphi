@@ -7,6 +7,7 @@ Functions for generating partitions.
 """
 
 from itertools import chain, permutations, product
+import itertools
 
 from . import config
 from .cache import cache
@@ -534,21 +535,27 @@ def all_partitions(mechanism, purview, node_labels=None):
 
     mechanism_partitions = partitions(mechanism)
     yield from partitions_from_purview_parts(
-        mechanism_partitions, 0, mechanism, purview, node_labels
+        mechanism_partitions,
+        next(mechanism_partitions),
+        mechanism,
+        purview,
+        node_labels,
     )
 
 
 def partitions_from_purview_parts(
-    mechanism_partitions, index, mechanism, purview, node_labels=None
+    mechanism_partitions, mechanism_partition, mechanism, purview, node_labels=None
 ):
-    if index == len(purview):
+    try:
+        yield from partitions_from_purview_parts(
+            mechanism_partitions,
+            next(mechanism_partitions),
+            mechanism,
+            purview,
+            node_labels,
+        )
+    except StopIteration:
         return
-
-    yield from partitions_from_purview_parts(
-        mechanism_partitions, index + 1, mechanism, purview, node_labels
-    )
-
-    mechanism_partition = mechanism_partitions[index]
 
     mechanism_partition.append([])
     n_mechanism_parts = len(mechanism_partition)
